@@ -4,6 +4,9 @@
 
 #include "zim.h"
 
+/* Единственное определение глобального tvi (zim.h объявляет его extern) */
+tvi_t tvi;
+
 void show_menu(tvi_t *tvi);
 
 int main(int argc, char **argv)
