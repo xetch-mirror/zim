@@ -1,22 +1,15 @@
 /*
  * prompt.c — интерактивный ввод командной строки (используется
- * ex-режимом и поиском): рисует ":" + текст внизу экрана, читает
- * символы по одному, поддерживает влево/вправо и удаление.
+ * ex-режимом и поиском): рисует ":" + текст внизу экрана через
+ * render_prompt()/render_cursor() из render.c, читает символы по
+ * одному, поддерживает влево/вправо и удаление.
  *
  * Возвращает 0, если пользователь подтвердил ввод (Enter) —
  * результат лежит в tvi->prompt. Возвращает -1, если отменено (Esc).
  */
 
-#include "zim.h"
 #include <string.h>
-
-static void render_prompt_line(tvi_t *tvi)
-{
-    int row = term_height - 1;
-    term_clear_line(row);
-    term_print_at(0, row, TERM_ATTR_FG_WHITE, ":%s", tvi->prompt);
-    term_set_cursor((int)(1 + tvi->prompt_cursor), row);
-}
+#include "zim.h"
 
 int prompt(tvi_t *tvi, const char *initial, int newline)
 {
@@ -33,16 +26,24 @@ int prompt(tvi_t *tvi, const char *initial, int newline)
     tvi->flags |= FLAG_PROMPT;
 
     for (;;) {
-        render_prompt_line(tvi);
+        render_prompt(tvi);
+        render_cursor(tvi);
+        render_flush(tvi);
 
         int c = term_get_key();
+
+        if (tvi->interrupted) {
+            tvi->interrupted = 0;
+            tvi->flags &= ~FLAG_PROMPT;
+            return -1;
+        }
 
         if (c == '\r' || c == '\n') {
             tvi->flags &= ~FLAG_PROMPT;
             return 0;
         }
 
-        if (c == 27) { /* Esc отменяет ввод */
+        if (c == 27) {
             tvi->flags &= ~FLAG_PROMPT;
             tvi->prompt[0] = '\0';
             tvi->prompt_len = 0;
@@ -72,7 +73,7 @@ int prompt(tvi_t *tvi, const char *initial, int newline)
         }
 
         if (c < 0 || c < 32)
-            continue; /* спецклавиши/управляющие символы игнорируем */
+            continue;
 
         if (tvi->prompt_len + 1 < sizeof(tvi->prompt)) {
             size_t i = tvi->prompt_cursor;
