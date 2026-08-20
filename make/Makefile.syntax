@@ -1,0 +1,20 @@
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+
+CC ?= cc
+CPPFLAGS ?= -I$(ROOT)/include
+CFLAGS ?= -std=c99 -Wall -Wextra -O2 -fPIC
+LDFLAGS ?= -shared
+
+MODULE_DIR ?= $(ROOT)/build/syntax
+MODULES := $(patsubst $(ROOT)/syntax/%.c,$(MODULE_DIR)/%.so,$(wildcard $(ROOT)/syntax/*.c))
+
+.PHONY: all clean
+
+all: $(MODULES)
+
+$(MODULE_DIR)/%.so: $(ROOT)/syntax/%.c
+	@mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $<
+
+clean:
+	rm -rf $(MODULE_DIR)

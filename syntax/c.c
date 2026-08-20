@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <tvi.h>
+#include <zim.h>
 
-const char *types[] = {
+static const char *types[] = {
         "char",
         "short",
         "int",
@@ -40,7 +40,7 @@ const char *types[] = {
         "va_list",
 };
 
-const char *keywords[] = {
+static const char *keywords[] = {
         "if",
         "else",
         "for",
@@ -55,7 +55,7 @@ const char *keywords[] = {
         "continue",
 };
 
-const char *preprocs[] = {
+static const char *preprocs[] = {
         "#define",
         "#undef",
         "#ifdef",
@@ -67,7 +67,7 @@ const char *preprocs[] = {
         "#include",
 };
 
-const char *consts[] = {
+static const char *consts[] = {
         "NULL",
         "nullptr",
         "EOF",
@@ -88,14 +88,14 @@ const char *consts[] = {
 #define WORD_CONSTS   3
 #define arraylen(a) sizeof(a)/sizeof(*a)
 
-const char **words[] = {
+static const char **words[] = {
         [WORD_TYPES] = types,
         [WORD_KEYWORDS] = keywords,
         [WORD_PREPROCS]  = preprocs,
         [WORD_CONSTS] = consts,
 };
 
-size_t words_len[] = {
+static size_t words_len[] = {
         [WORD_TYPES] = arraylen(types),
         [WORD_KEYWORDS] = arraylen(keywords),
         [WORD_PREPROCS]  = arraylen(preprocs),
@@ -108,14 +108,14 @@ static int alpha_sort(const void *e1, const void *e2) {
         return strcmp(*str1, *str2);
 }
 
-int init() {
+static int c_init() {
         for (size_t i=0; i<arraylen(words); i++) {
                 qsort(words[i], words_len[i], sizeof(const char *), alpha_sort);
         }
         return 0;
 }
 
-int is_word_type(const char *word, size_t len, int type) {
+static int c_c_is_word_type(const char *word, size_t len, int type) {
         const char **list = words[type];
         size_t start = 0;
         size_t end  = words_len[type]-1;
@@ -141,11 +141,10 @@ before:
         return 0;
 }
 
-int word_color(const char *word, size_t size) {
-        if (is_word_type(word, size, WORD_TYPES)) return TERM_ATTR_FG_GREEN;
-        if (is_word_type(word, size, WORD_KEYWORDS)) return TERM_ATTR_FG_YELLOW;
-        if (is_word_type(word, size, WORD_CONSTS) || isdigit(*word)) return TERM_ATTR_FG_MAGENTA;
-        return 0;
+static int c_word_color(const char *word, size_t size) {
+	if (c_c_is_word_type(word, size, WORD_TYPES)) return TERM_ATTR_FG_GREEN;
+	if (c_c_is_word_type(word, size, WORD_KEYWORDS)) return TERM_ATTR_FG_YELLOW;
+	if (c_c_is_word_type(word, size, WORD_PREPROCS) || isdigit(*word)) return TERM_ATTR_FG_MAGENTA;
 }
 
 static int is_word_char(int c) {
@@ -186,7 +185,7 @@ static void put_word(win_t *win, int *x, int *y, int attr, const char *str, int 
         }
 }
 
-void print_line(win_t *win, int y, const char *line) {
+static void c_print_line(win_t *win, int y, const char *line) {
         // print word by word
         int x = 0;
         while (isblank(*line)) {
@@ -200,7 +199,7 @@ void print_line(win_t *win, int y, const char *line) {
                 while (is_word_char(word[word_len])) {
                         word_len++;
                 }
-                if (is_word_type(word, word_len, WORD_PREPROCS)) {
+                if (c_is_word_type(word, word_len, WORD_PREPROCS)) {
                         put_word(win, &x, &y, TERM_ATTR_FG_BLUE, word, word_len);
                         line += word_len;
                 }
@@ -249,7 +248,7 @@ void print_line(win_t *win, int y, const char *line) {
                         word_len++;
                         line++;
                 }
-                int color = word_color(word, word_len);
+                int color = c_word_color(word, word_len);
                 put_word(win, &x, &y, color, word, word_len);
                 continue;
         }

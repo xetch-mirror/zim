@@ -78,4 +78,6 @@ void win_print_at(win_t *win, int x, int y, int attr, const char *fmt, ...)
         bound.height = win->height;
 
         va_start(args, fmt);
-        term_vprint_bound_at(&bound, x, y, attr, fm
+        term_vprint_bound_at(&bound, x, y, attr, fmt, args);
+        va_end(args);
+}

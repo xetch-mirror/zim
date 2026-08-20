@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <zim.h>
 
-const char *keywords[] = {
+static const char *keywords[] = {
         "define",
         "defun",
         "lambda",
@@ -29,7 +29,7 @@ const char *keywords[] = {
         "unquote-splicing",
 };
 
-const char *builtins[] = {
+static const char *builtins[] = {
         "car",
         "cdr",
         "cons",
@@ -64,7 +64,7 @@ const char *builtins[] = {
         ">=",
 };
 
-const char *consts[] = {
+static const char *consts[] = {
         "nil",
         "t",
         "true",
@@ -78,7 +78,7 @@ const char *consts[] = {
 #define WORD_CONSTS   2
 #define arraylen(a) sizeof(a)/sizeof(*a)
 
-const char **words[] = {
+static const char **words[] = {
         [WORD_KEYWORDS] = keywords,
         [WORD_BUILTINS] = builtins,
         [WORD_CONSTS]   = consts,
@@ -96,7 +96,7 @@ static int alpha_sort(const void *e1, const void *e2) {
         return strcmp(*str1, *str2);
 }
 
-int init() {
+static int lisp_init() {
         for (size_t i=0; i<arraylen(words); i++) {
                 qsort(words[i], words_len[i], sizeof(const char *), alpha_sort);
         }
@@ -117,7 +117,7 @@ static int is_symbol_char(int c) {
         }
 }
 
-int is_word_type(const char *word, size_t len, int type) {
+static int lisp_is_word_type(const char *word, size_t len, int type) {
         const char **list = words[type];
         size_t start = 0;
         size_t end  = words_len[type]-1;
@@ -143,10 +143,10 @@ before:
         return 0;
 }
 
-int word_color(const char *word, size_t size) {
-        if (is_word_type(word, size, WORD_KEYWORDS)) return TERM_ATTR_FG_YELLOW;
-        if (is_word_type(word, size, WORD_BUILTINS)) return TERM_ATTR_FG_GREEN;
-        if (is_word_type(word, size, WORD_CONSTS)) return TERM_ATTR_FG_MAGENTA;
+static int lisp_word_color(const char *word, size_t size) {
+        if (lisp_is_word_type(word, size, WORD_KEYWORDS)) return TERM_ATTR_FG_YELLOW;
+        if (lisp_is_word_type(word, size, WORD_BUILTINS)) return TERM_ATTR_FG_GREEN;
+        if (lisp_is_word_type(word, size, WORD_CONSTS)) return TERM_ATTR_FG_MAGENTA;
         if (isdigit(*word) || (*word == '-' && isdigit(word[1]))) return TERM_ATTR_FG_MAGENTA;
         return 0;
 }
@@ -172,7 +172,7 @@ static void put_word(win_t *win, int *x, int *y, int attr, const char *str, int 
         }
 }
 
-const char *print_line(win_t *win, int y, const char *line) {
+static const char *lisp_print_line(win_t *win, int y, const char *line) {
         int x = 0;
         while (isblank(*line)) {
                 put_at(win, &x, &y, 0, *line);
@@ -216,7 +216,7 @@ const char *print_line(win_t *win, int y, const char *line) {
                         word_len++;
                         line++;
                 }
-                int color = word_color(word, word_len);
+                int color = lisp_word_color(word, word_len);
                 put_word(win, &x, &y, color, word, word_len);
         }
 
