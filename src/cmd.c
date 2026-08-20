@@ -10,23 +10,23 @@ static void cmd_quit(tvi_t *tvi, int force)
     win_t *win = tvi->focus_window;
 
     if (!force && (win->flags & FLAG_DIRTY)) {
-        error(tvi, "нет записи после последнего изменения — :q! (E37)");
+        error(tvi, "No write since last change — :q! (E37)");
         return;
     }
 
     tvi->flags |= FLAG_QUIT;
-    print(tvi, "Выход");
+    print(tvi, "Quit");
 }
 
 static void cmd_edit(tvi_t *tvi, win_t *win, const char *path)
 {
     if (!path || !*path) {
-        error(tvi, "E32: Не задано имя файла");
+        error(tvi, "E32: No file name");
         return;
     }
 
     if (io_create(path) != 0) {
-        error(tvi, "E212: Не удаётся открыть файл для записи");
+        error(tvi, "E212: Can't open file for writing");
         return;
     }
 
@@ -49,18 +49,18 @@ static int cmd_write(tvi_t *tvi, win_t *win, const char *path)
         if (win->files_count > 0 && win->files)
             target = win->files[0];
         else {
-            error(tvi, "E32: Не задано имя файла");
+            error(tvi, "E32: No file name");
             return -1;
         }
     }
 
     if (write_file(tvi, win, target, 0, win->lines_count - 1) != 0) {
-        error(tvi, "E212: Ошибка записи файла");
+        error(tvi, "E212: Error writing file");
         return -1;
     }
 
     win->flags &= ~FLAG_DIRTY;
-    print(tvi, "\"%s\" записано", target);
+    print(tvi, "\"%s\" written", target);
     return 0;
 }
 
@@ -102,7 +102,7 @@ int ex_command(tvi_t *tvi, const char *command)
             cmd++;
         cmd_edit(tvi, win, cmd);
     } else {
-        error(tvi, "E492: Неизвестная команда");
+        error(tvi, "E492: Unknown command");
     }
 
     return 0;
