@@ -179,6 +179,11 @@ void term_vprint_bound_at(bound_t *bound, int x, int y, int attr,
         return;
 
     term_goto(x, y);
+void term_vprint_at(int x, int y, int attr, const char *fmt, va_list args)
+{
+    bound_t full = { 0, 0, term_width, term_height };
+    term_vprint_bound_at(&full, x, y, attr, fmt, args);
+}
     apply_attr(attr);
     term_write_str(buf);
     term_send_code(TERM_CLEAR_END_LINE);
