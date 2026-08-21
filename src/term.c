@@ -193,29 +193,6 @@ void term_print_at(int x, int y, int attr, const char *fmt, ...)
     va_end(args);
 }
 
-void term_vprint_bound_at(bound_t *bound, int x, int y, int attr,
-                           const char *fmt, va_list args)
-{
-    char buf[512];
-    int max_len;
-
-    vsnprintf(buf, sizeof(buf), fmt, args);
-
-    max_len = bound->x + bound->width - x;
-    if (max_len < 0)
-        return;
-    if ((int)strlen(buf) > max_len)
-        buf[max_len] = '\0';
-
-    if (y < bound->y || y >= bound->y + bound->height)
-        return;
-
-    term_goto(x, y);
-    apply_attr(attr);
-    term_write_str(buf);
-    term_reset_color();
-}
-
 void term_redraw(void)
 {
     /* пока без явной буферизации; позже можно добавить
