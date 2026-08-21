@@ -31,7 +31,7 @@ void show_menu(tvi_t *tvi)
         "",
         "version " ZIM_VERSION,
         "",
-        "zim is part of the Zythos project",
+        "zim is part of the Z project and will forever be.",
         "",
         "type  :e {file}<Enter>     to edit or create a file",
         "type  :w<Enter>            to save",
